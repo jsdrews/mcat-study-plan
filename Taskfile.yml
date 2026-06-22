@@ -1,0 +1,46 @@
+version: "3"
+
+tasks:
+  # ---------- Setup ----------
+
+  setup:
+    desc: Create venv and install all dependencies
+    cmds:
+      - uv sync --all-extras
+    status:
+      - test -f .venv/bin/activate
+
+  # ---------- Notebooks ----------
+
+  notebook:
+    desc: Launch Jupyter notebook server
+    deps: [setup]
+    cmds:
+      - uv run jupyter notebook notebooks/
+
+  export:
+    desc: Convert notebooks to interactive HTML in docs/
+    deps: [setup]
+    cmds:
+      - mkdir -p docs
+      - uv run jupyter nbconvert --to html --execute --no-input --output-dir=docs notebooks/*.ipynb
+      - echo "Exported to docs/"
+
+  # ---------- Maintenance ----------
+
+  clean:venv:
+    desc: Remove the virtual environment
+    cmds:
+      - rm -rf .venv
+
+  lint:
+    desc: Lint all Python files with ruff
+    deps: [setup]
+    cmds:
+      - uv run ruff check planner/
+
+  fmt:
+    desc: Format all Python files with ruff
+    deps: [setup]
+    cmds:
+      - uv run ruff format planner/
